@@ -1,15 +1,18 @@
-import Kfsch
+import System.Plugins
+import Kfsch.SiteApi
+import Control.Monad
 
 main :: IO ()
 main = do
-        -- a <- login site
-        -- case a of
-        --         Just x -> putStrLn x
-        --         Nothing -> return ()
+        putStrLn "loading..." -- This needs to be called from main or it is not available in plugins later o_O
 
-        -- b <- logout site
-        -- case b of
-        --         Just x -> putStrLn x
-        --         Nothing -> return ()
-        a <- loadPlugins
-        return ()
+        let plist = ["Kfsch/Cstc.o", "Kfsch/Test.o"]
+        sites <- mapM (\p -> load_ p ["."] "resource") plist
+
+        doSiteFunc login  sites 
+        doSiteFunc logout sites 
+
+        where
+                doSiteFunc f p = mapM_ (\(l, s) -> l s) $ map (liftM2 (,) f site . fromLoadSuc) p
+                fromLoadSuc (LoadFailure _)   = error "load failed"
+                fromLoadSuc (LoadSuccess _ v) = v
